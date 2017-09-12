@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".Dagger2TestApplication"
         android:allowBackup="true"
         android:fullBackupContent="false"
         android:icon="@mipmap/ic_launcher"
