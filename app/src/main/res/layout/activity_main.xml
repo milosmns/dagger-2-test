@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -28,6 +29,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/spacing_normal"
+        android:autoSizeMaxTextSize="@dimen/text_size_large"
+        android:autoSizeMinTextSize="@dimen/text_size_small"
+        android:autoSizeTextType="uniform"
+        android:ellipsize="start"
+        android:maxLines="1"
         android:padding="@dimen/spacing_normal"
         android:text="Outer instance"
         android:textSize="@dimen/text_size_large"
@@ -35,6 +41,8 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        tools:background="#60FF0000"
+        tools:ignore="UnusedAttribute"
         tools:layout_constraintLeft_creator="1"
         tools:layout_constraintRight_creator="1"
         tools:layout_constraintTop_creator="1" />

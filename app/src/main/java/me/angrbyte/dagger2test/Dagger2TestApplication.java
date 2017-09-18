@@ -5,9 +5,6 @@ import android.util.Log;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.annotations.NonNull;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.BehaviorSubject;
 import me.angrbyte.dagger2test.components.DaggerSlowComponent;
@@ -24,49 +21,47 @@ public class Dagger2TestApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        // behavior leaves the last value inside (good for singleton access)
+        // behavior subject saves the last value inside (great for singleton access)
         BehaviorSubject<SlowComponent> creator = BehaviorSubject.create();
-        mComponent = creator.subscribeOn(Schedulers.computation());
+        mComponent = creator;
 
-        // async component loading
-        final Disposable loaderDisposable = Completable.create(e -> {
-            // artificial non-blocking delay
+        // async singleton loading
+        Completable.create(emitter -> {
+            Log.i(TAG, "onCreate: Creating new " + TAG + " instance...");
+
+            // prepare an artificial blocking delay
             final long delay = 2000L + Math.round(Math.random() * 4000d);
             final long start = System.currentTimeMillis();
+
+            // noinspection StatementWithEmptyBody - just actively wait here
             do {} while (System.currentTimeMillis() - start < delay);
+            Log.i(TAG, "onCreate: Delayed " + TAG + " creation by: " + ((float) (System.currentTimeMillis() - start) / 1000f) + "s");
 
             // create and notify
-            final SlowComponent instance = DaggerSlowComponent.builder().contextModule(new ContextModule(this)).build();
+            final SlowComponent instance = buildSlowComponentGraph();
+            Log.i(TAG, "onCreate: Instance '" + instance.toString().replace(getPackageName() + ".", "") + "' created!");
+
+            // finally produce the event to all observers
             creator.onNext(instance);
-            e.onComplete();
-        }).subscribeOn(Schedulers.computation()).subscribe();
-
-        // diagnostics and unsubscription from the loader
-        creator.subscribeOn(Schedulers.computation()).subscribe(new Observer<SlowComponent>() {
-            @Override
-            public void onSubscribe(@NonNull final Disposable d) {
-                Log.d(TAG, "Creator::onSubscribe()");
-            }
-
-            @Override
-            public void onNext(@NonNull final SlowComponent slowComponent) {
-                Log.d(TAG, "Creator::onNext()");
-                loaderDisposable.dispose();
-            }
-
-            @Override
-            public void onError(@NonNull final Throwable e) {
-                Log.d(TAG, "Creator::onError()");
-            }
-
-            @Override
-            public void onComplete() {
-                Log.d(TAG, "Creator::onComplete()");
-            }
-        });
+            emitter.onComplete();
+        }).subscribeOn(Schedulers.io()).subscribe();
     }
 
-    public Observable<SlowComponent> getSlowComponent() {
+    /**
+     * Builds the dependency graph for the {@link SlowComponent}. Note that this is <b>blocking</b>.
+     *
+     * @return The {@link SlowComponent} instance
+     */
+    private SlowComponent buildSlowComponentGraph() {
+        return DaggerSlowComponent.builder().contextModule(new ContextModule(this)).build();
+    }
+
+    /**
+     * A public API to the singleton initializer.
+     *
+     * @return The {@link Observable} that will eventually produce a {@link SlowComponent}
+     */
+    public Observable<SlowComponent> getSingletonInitializer() {
         return mComponent;
     }
 
