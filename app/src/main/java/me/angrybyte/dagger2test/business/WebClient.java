@@ -1,4 +1,4 @@
-package me.angrbyte.dagger2test.business;
+package me.angrybyte.dagger2test.business;
 
 import io.reactivex.Single;
 

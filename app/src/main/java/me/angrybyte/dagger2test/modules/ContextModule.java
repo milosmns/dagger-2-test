@@ -1,11 +1,12 @@
-package me.angrbyte.dagger2test.modules;
+package me.angrybyte.dagger2test.modules;
 
 import android.content.Context;
 
 import dagger.Module;
 import dagger.Provides;
-import me.angrbyte.dagger2test.scopes.ActivityScope;
+import me.angrybyte.dagger2test.scopes.ApplicationScope;
 
+@SuppressWarnings("WeakerAccess")
 @Module
 public class ContextModule {
 
@@ -16,7 +17,7 @@ public class ContextModule {
     }
 
     @Provides
-    @ActivityScope
+    @ApplicationScope
     public Context getContext() {
         return mContext;
     }

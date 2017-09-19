@@ -1,10 +1,10 @@
-package me.angrbyte.dagger2test.scopes;
+package me.angrybyte.dagger2test.qualifiers;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import javax.inject.Scope;
+import javax.inject.Qualifier;
 
-@Scope
+@Qualifier
 @Retention(RetentionPolicy.CLASS)
-public @interface ActivityScope {}
+public @interface Production {}
