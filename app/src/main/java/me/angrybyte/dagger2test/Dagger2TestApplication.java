@@ -7,6 +7,7 @@ import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.subjects.Subject;
 import me.angrybyte.dagger2test.components.DaggerQuickComponent;
 import me.angrybyte.dagger2test.components.DaggerSlowComponent;
 import me.angrybyte.dagger2test.components.QuickComponent;
@@ -17,20 +18,27 @@ public class Dagger2TestApplication extends Application {
 
     private static final String TAG = Dagger2TestApplication.class.getSimpleName();
 
-    private Observable<SlowComponent> mSlowComponent;
-    private Observable<QuickComponent> mQuickComponent;
+    private Subject<SlowComponent> mSlowComponent;
+    private Subject<QuickComponent> mQuickComponent;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
         // behavior subject saves the last value inside (great for singleton access)
-        BehaviorSubject<SlowComponent> slowCreator = BehaviorSubject.create();
-        mSlowComponent = slowCreator;
-        BehaviorSubject<QuickComponent> quickCreator = BehaviorSubject.create();
-        mQuickComponent = quickCreator;
+        mSlowComponent = BehaviorSubject.create();
+        mQuickComponent = BehaviorSubject.create();
 
-        // async singleton loading
+        buildAll();
+    }
+
+    // <editor-fold desc="Graph builders">
+
+    /**
+     * Builds both graphs and fires events toward {@link #mSlowComponent} and {@link #mQuickComponent} subjects.
+     */
+    public void buildAll() {
+        // async slow singleton loading
         Completable.create(emitter -> {
             Log.i(TAG, "onCreate: Creating new SlowComponent instance...");
 
@@ -48,10 +56,11 @@ public class Dagger2TestApplication extends Application {
             Log.i(TAG, "onCreate: Instance '" + instance.toString().replace(getPackageName() + ".", "") + "' created!");
 
             // finally produce the event to all observers
-            slowCreator.onNext(instance);
+            mSlowComponent.onNext(instance);
             emitter.onComplete();
-        }).subscribeOn(Schedulers.io()).subscribe();
+        }).subscribeOn(Schedulers.computation()).subscribe();
 
+        // async quick singleton loading
         Completable.create(emitter -> {
             Log.i(TAG, "onCreate: Creating new QuickComponent instance...");
             // quickly create and notify
@@ -59,12 +68,10 @@ public class Dagger2TestApplication extends Application {
             Log.i(TAG, "onCreate: Instance '" + instance.toString().replace(getPackageName() + ".", "") + "' created!");
 
             // finally produce the event to all observers
-            quickCreator.onNext(instance);
+            mQuickComponent.onNext(instance);
             emitter.onComplete();
-        }).subscribeOn(Schedulers.io()).subscribe();
+        }).subscribeOn(Schedulers.computation()).subscribe();
     }
-
-    // <editor-fold desc="Graph builders">
 
     /**
      * Builds the dependency graph for the {@link SlowComponent}. Note that this is <b>blocking</b>.

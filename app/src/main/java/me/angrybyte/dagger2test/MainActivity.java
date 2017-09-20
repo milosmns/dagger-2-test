@@ -29,6 +29,9 @@ import me.angrybyte.sillyandroid.parsable.components.ParsableActivity;
 public class MainActivity extends ParsableActivity {
 
     // <editor-fold desc="Views">
+    @FindView(R.id.instance_description_outer)
+    private TextView mInstanceDescription;
+
     @Clickable
     @SuppressWarnings("unused")
     @FindView(R.id.button_slow_instance)
@@ -39,38 +42,55 @@ public class MainActivity extends ParsableActivity {
     @FindView(R.id.button_quick_instance)
     private Button mQuickInstanceButton;
 
-    @FindView(R.id.instance_description_outer)
-    private TextView mInstanceDescription;
+    @Clickable
+    @SuppressWarnings("unused")
+    @FindView(R.id.button_generate)
+    private Button mGenerateGraphButton;
     // </editor-fold>
 
-    private Disposable mInitFinalizer;
-    private CompositeDisposable mClickDisposables;
     private Observable<SlowComponent> mSlowSingleton;
     private Observable<QuickComponent> mQuickSingleton;
 
+    private Disposable mGenerateDisposable;
+    private Disposable mSlowComponentDisposable;
+    private Disposable mQuickComponentDisposable;
+    private CompositeDisposable mAllDisposables;
+
     @Override
-    @SuppressLint("SetTextI18n")
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mClickDisposables = new CompositeDisposable();
+        mAllDisposables = new CompositeDisposable();
         mSlowSingleton = ((Dagger2TestApplication) getApplicationContext()).getSlowComponentObservable();
         mQuickSingleton = ((Dagger2TestApplication) getApplicationContext()).getQuickComponentObservable();
+        generateGraph();
+    }
 
+    /**
+     * Generates a new dependency graph.
+     */
+    @SuppressLint("SetTextI18n")
+    private void generateGraph() {
         // disable the buttons until the components are loaded
         mSlowInstanceButton.setEnabled(false);
         mQuickInstanceButton.setVisibility(View.GONE);
+        mGenerateGraphButton.setVisibility(View.GONE);
 
-        final Observable<Pair<SlowComponent, QuickComponent>> zippedObservable = Observable.zip(mSlowSingleton, mQuickSingleton, Pair::new);
-        final Single<Pair<SlowComponent, QuickComponent>> initializer = Single.fromObservable(zippedObservable);
-        mInitFinalizer = initializer.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(pair -> {
-            // components are loaded for the first time
-            mSlowInstanceButton.setEnabled(true);
-            mQuickInstanceButton.setVisibility(View.VISIBLE);
-            dispose(mInitFinalizer);
-            mInstanceDescription.setText("Initialized! Slow: " + pair.first.toString() + ", Quick: " + pair.second.toString());
-            mInstanceDescription.setTextColor(Color.WHITE);
-        });
+        dispose(mGenerateDisposable);
+        mGenerateDisposable = Single
+                .fromObservable(Observable.zip(mSlowSingleton, mQuickSingleton, Pair::new).take(1))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(pair -> {
+                    // components are loaded for the first time
+                    mSlowInstanceButton.setEnabled(true);
+                    mQuickInstanceButton.setVisibility(View.VISIBLE);
+                    mGenerateGraphButton.setVisibility(View.VISIBLE);
+                    dispose(mGenerateDisposable);
+                    mInstanceDescription.setText("Generated!\nSlow: " + getCleanToString(pair.first) + "\nQuick: " + getCleanToString(pair.second));
+                    mInstanceDescription.setTextColor(Color.WHITE);
+                });
+        mAllDisposables.add(mGenerateDisposable);
     }
 
     @Override
@@ -78,35 +98,39 @@ public class MainActivity extends ParsableActivity {
     public void onClick(@NonNull final View v) {
         switch (v.getId()) {
             case R.id.button_slow_instance: {
-                final Disposable slowDisposable = mSlowSingleton
+                v.setEnabled(false);
+                dispose(mSlowComponentDisposable);
+                mSlowComponentDisposable = mSlowSingleton
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(slowComponent -> {
+                        .subscribe(slowComponentInstance -> {
                             // slow component is either loaded for the first time or we just got an event
                             // from the behavior subject containing the last available instance
                             v.setEnabled(true);
-                            dispose(mInitFinalizer, mClickDisposables);
-                            mInstanceDescription.setText("SlowComponent = " + getCleanToString(slowComponent));
+                            dispose(mSlowComponentDisposable);
+                            mInstanceDescription.setText("SlowComponent = " + getCleanToString(slowComponentInstance));
                             mInstanceDescription.setTextColor(randomColor(140));
                         });
-                v.setEnabled(false);
-                mClickDisposables.add(slowDisposable);
+                mAllDisposables.add(mSlowComponentDisposable);
                 break;
             }
             case R.id.button_quick_instance: {
-                final Disposable quickDisposable = mQuickSingleton
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(quickComponent -> {
-                            // quick component is either loaded for the first time or we just got an event
-                            // from the behavior subject containing the last available instance
-                            v.setVisibility(View.VISIBLE);
-                            dispose(mInitFinalizer, mClickDisposables);
-                            mInstanceDescription.setText("QuickComponent = " + getCleanToString(quickComponent));
-                            mInstanceDescription.setTextColor(randomColor(100));
-                        });
                 v.setVisibility(View.GONE);
-                mClickDisposables.add(quickDisposable);
+                dispose(mQuickComponentDisposable);
+                mQuickComponentDisposable = mQuickSingleton.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(quickComponent -> {
+                    // quick component is either loaded for the first time or we just got an event
+                    // from the behavior subject containing the last available instance
+                    v.setVisibility(View.VISIBLE);
+                    dispose(mQuickComponentDisposable);
+                    mInstanceDescription.setText("QuickComponent = " + getCleanToString(quickComponent));
+                    mInstanceDescription.setTextColor(randomColor(100));
+                });
+                mAllDisposables.add(mQuickComponentDisposable);
+                break;
+            }
+            case R.id.button_generate: {
+                ((Dagger2TestApplication) getApplicationContext()).buildAll();
+                generateGraph();
                 break;
             }
             default: {
@@ -114,6 +138,13 @@ public class MainActivity extends ParsableActivity {
                 break;
             }
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        dispose(mAllDisposables);
+        mAllDisposables = new CompositeDisposable();
     }
 
     @ColorInt
@@ -126,7 +157,13 @@ public class MainActivity extends ParsableActivity {
 
     @NonNull
     private String getCleanToString(@Nullable final Object object) {
-        return String.valueOf(object).replace(getPackageName() + ".", "");
+        if (object instanceof SlowComponent) {
+            return ((SlowComponent) object).getWebClient().toString();
+        } else if (object instanceof QuickComponent) {
+            return ((QuickComponent) object).getWebClient().toString();
+        } else {
+            return String.valueOf(object).replace(getPackageName() + ".", "");
+        }
     }
 
     private void dispose(@Nullable final Disposable... disposables) {
@@ -143,7 +180,7 @@ public class MainActivity extends ParsableActivity {
     @Override
     protected void onBlockingDestroy() {
         super.onBlockingDestroy();
-        dispose(mInitFinalizer, mClickDisposables);
+        dispose(mAllDisposables);
     }
 
 }
