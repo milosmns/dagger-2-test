@@ -18,7 +18,7 @@
         android:autoSizeMinTextSize="@dimen/text_size_small"
         android:autoSizeTextType="uniform"
         android:ellipsize="start"
-        android:maxLines="4"
+        android:maxHeight="100dp"
         android:padding="@dimen/spacing_normal"
         android:paddingLeft="@dimen/spacing_normal"
         android:paddingRight="@dimen/spacing_normal"

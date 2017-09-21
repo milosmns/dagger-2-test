@@ -16,7 +16,14 @@ public class CacheModule {
     @Provides
     @ApplicationScope
     public File provideCacheFile(Context context) {
-        return new File(context.getExternalCacheDir(), "temp/my_data_" + new Random().nextInt() + ".txt");
+        String fileCode = Integer.toHexString(Math.abs(new Random().nextInt()));
+
+        // this makes no sense, I know
+        if (context.getCacheDir() != null) {
+            return new File("temp/my_data_" + fileCode + ".txt");
+        } else {
+            return new File(context.getExternalCacheDir(), "EXT_" + fileCode + ".txt");
+        }
     }
 
 }

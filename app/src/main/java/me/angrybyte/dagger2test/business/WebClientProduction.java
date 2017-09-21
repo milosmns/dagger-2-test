@@ -22,7 +22,8 @@ public class WebClientProduction implements WebClient {
         Log.d(TAG, "PRODUCTION! Cache file blocking " + mCacheFile.toURI().toASCIIString());
         final long start = System.currentTimeMillis();
         // noinspection StatementWithEmptyBody
-        do {} while (System.currentTimeMillis() - start < 200);
+        do {
+        } while (System.currentTimeMillis() - start < 200);
         return false;
     }
 
@@ -32,7 +33,8 @@ public class WebClientProduction implements WebClient {
             Log.d(TAG, "PRODUCTION! Cache file async " + mCacheFile.toURI().toASCIIString());
             final long start = System.currentTimeMillis();
             // noinspection StatementWithEmptyBody
-            do {} while (System.currentTimeMillis() - start < 200);
+            do {
+            } while (System.currentTimeMillis() - start < 200);
             return true;
         });
     }

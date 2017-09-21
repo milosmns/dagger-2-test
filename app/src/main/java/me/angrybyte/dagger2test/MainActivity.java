@@ -8,12 +8,12 @@ import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.Pair;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import io.reactivex.Observable;
-import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
@@ -63,34 +63,40 @@ public class MainActivity extends ParsableActivity {
         mAllDisposables = new CompositeDisposable();
         mSlowSingleton = ((Dagger2TestApplication) getApplicationContext()).getSlowComponentObservable();
         mQuickSingleton = ((Dagger2TestApplication) getApplicationContext()).getQuickComponentObservable();
-        generateGraph();
     }
 
     /**
      * Generates a new dependency graph.
      */
     @SuppressLint("SetTextI18n")
-    private void generateGraph() {
+    private void reloadGraph() {
         // disable the buttons until the components are loaded
         mSlowInstanceButton.setEnabled(false);
         mQuickInstanceButton.setVisibility(View.GONE);
         mGenerateGraphButton.setVisibility(View.GONE);
 
-        dispose(mGenerateDisposable);
-        mGenerateDisposable = Single
-                .fromObservable(Observable.zip(mSlowSingleton, mQuickSingleton, Pair::new).take(1))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(pair -> {
-                    // components are loaded for the first time
-                    mSlowInstanceButton.setEnabled(true);
-                    mQuickInstanceButton.setVisibility(View.VISIBLE);
-                    mGenerateGraphButton.setVisibility(View.VISIBLE);
-                    dispose(mGenerateDisposable);
-                    mInstanceDescription.setText("Generated!\nSlow: " + getCleanToString(pair.first) + "\nQuick: " + getCleanToString(pair.second));
-                    mInstanceDescription.setTextColor(Color.WHITE);
-                });
+        if (mGenerateDisposable == null || mGenerateDisposable.isDisposed()) {
+            mGenerateDisposable = Observable
+                    .zip(mSlowSingleton, mQuickSingleton, Pair::new)
+                    .distinct()
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(this::onNewGraphAvailable);
+        }
         mAllDisposables.add(mGenerateDisposable);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        reloadGraph();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        dispose(mAllDisposables);
+        mAllDisposables = new CompositeDisposable();
     }
 
     @Override
@@ -130,7 +136,7 @@ public class MainActivity extends ParsableActivity {
             }
             case R.id.button_generate: {
                 ((Dagger2TestApplication) getApplicationContext()).buildAll();
-                generateGraph();
+                reloadGraph();
                 break;
             }
             default: {
@@ -140,11 +146,14 @@ public class MainActivity extends ParsableActivity {
         }
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        dispose(mAllDisposables);
-        mAllDisposables = new CompositeDisposable();
+    private void onNewGraphAvailable(@NonNull final Pair<SlowComponent, QuickComponent> graph) {
+        Log.d(getClass().getSimpleName(), "onNewGraphAvailable: " + graph);
+        // components are loaded for the first time
+        mSlowInstanceButton.setEnabled(true);
+        mQuickInstanceButton.setVisibility(View.VISIBLE);
+        mGenerateGraphButton.setVisibility(View.VISIBLE);
+        mInstanceDescription.setText("Generated!\nSlow: " + getCleanToString(graph.first) + "\nQuick: " + getCleanToString(graph.second));
+        mInstanceDescription.setTextColor(Color.WHITE);
     }
 
     @ColorInt

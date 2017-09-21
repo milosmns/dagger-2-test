@@ -15,7 +15,7 @@ public class WebClientDebug implements WebClient {
 
     public WebClientDebug(final File cacheFile) {
         mCacheFile = cacheFile;
-        Log.d(TAG, "Constructed " + TAG);
+        Log.d(TAG, "Constructed " + toString());
     }
 
     @Override
@@ -23,7 +23,8 @@ public class WebClientDebug implements WebClient {
         Log.d(TAG, "DEBUG! Cache file blocking " + mCacheFile.toURI().toASCIIString());
         final long start = System.currentTimeMillis();
         // noinspection StatementWithEmptyBody
-        do {} while (System.currentTimeMillis() - start < 1000);
+        do {
+        } while (System.currentTimeMillis() - start < 1000);
         return false;
     }
 
@@ -33,7 +34,8 @@ public class WebClientDebug implements WebClient {
             Log.d(TAG, "DEBUG! Cache file async " + mCacheFile.toURI().toASCIIString());
             final long start = System.currentTimeMillis();
             // noinspection StatementWithEmptyBody
-            do {} while (System.currentTimeMillis() - start < 1000);
+            do {
+            } while (System.currentTimeMillis() - start < 1000);
             return true;
         }).subscribeOn(Schedulers.io());
     }
