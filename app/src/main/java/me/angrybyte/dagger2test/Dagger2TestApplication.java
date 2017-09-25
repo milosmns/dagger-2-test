@@ -29,6 +29,7 @@ public class Dagger2TestApplication extends Application {
         mSlowComponent = BehaviorSubject.create();
         mQuickComponent = BehaviorSubject.create();
 
+        // builds both dependency graphs
         buildAll();
     }
 
