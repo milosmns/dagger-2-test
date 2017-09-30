@@ -18,8 +18,8 @@ public class Dagger2TestApplication extends Application {
 
     private static final String TAG = Dagger2TestApplication.class.getSimpleName();
 
-    private SerialDisposable mAtomicDisposableSlow;
-    private SerialDisposable mAtomicDisposableQuick;
+    private SerialDisposable mAtomicDisposableForSlow;
+    private SerialDisposable mAtomicDisposableForQuick;
     private Observable<SlowComponent> mSlowComponent;
     private Observable<QuickComponent> mQuickComponent;
 
@@ -40,8 +40,8 @@ public class Dagger2TestApplication extends Application {
         super.onCreate();
 
         // SerialDisposable (wrapper around disposable) allows atomic disposable instance replacement
-        mAtomicDisposableSlow = new SerialDisposable();
-        mAtomicDisposableQuick = new SerialDisposable();
+        mAtomicDisposableForSlow = new SerialDisposable();
+        mAtomicDisposableForQuick = new SerialDisposable();
 
         // asynchronously initialize the slow component
         mSlowComponent = Observable
@@ -63,7 +63,7 @@ public class Dagger2TestApplication extends Application {
                 })
                 .subscribeOn(Schedulers.io()) // slow running, run on I/O
                 .replay(1) // re-emits the last value from the stream, if any (similar to behavior subject); also becomes connectible
-                .autoConnect(0, mAtomicDisposableSlow::set); // wait for 0 subscribers, i.e. start now; also new disposable is produced, save it
+                .autoConnect(0, mAtomicDisposableForSlow::set); // wait for 0 subscribers, i.e. start now; also a new disposable is produced, save it
 
         // asynchronously initialize the quick component
         mQuickComponent = Observable
@@ -76,7 +76,7 @@ public class Dagger2TestApplication extends Application {
                 })
                 .subscribeOn(Schedulers.io())
                 .replay(1)
-                .autoConnect(0, mAtomicDisposableQuick::set);
+                .autoConnect(0, mAtomicDisposableForQuick::set);
     }
 
     /**
@@ -84,13 +84,13 @@ public class Dagger2TestApplication extends Application {
      * This will also dispose of the initializer callback disposables.
      */
     public void cleanup() {
-        if (mAtomicDisposableSlow != null && !mAtomicDisposableSlow.isDisposed()) {
-            mAtomicDisposableSlow.dispose();
-            mAtomicDisposableSlow = null;
+        if (mAtomicDisposableForSlow != null && !mAtomicDisposableForSlow.isDisposed()) {
+            mAtomicDisposableForSlow.dispose();
+            mAtomicDisposableForSlow = null;
         }
-        if (mAtomicDisposableQuick != null && !mAtomicDisposableQuick.isDisposed()) {
-            mAtomicDisposableQuick.dispose();
-            mAtomicDisposableQuick = null;
+        if (mAtomicDisposableForQuick != null && !mAtomicDisposableForQuick.isDisposed()) {
+            mAtomicDisposableForQuick.dispose();
+            mAtomicDisposableForQuick = null;
         }
     }
 
