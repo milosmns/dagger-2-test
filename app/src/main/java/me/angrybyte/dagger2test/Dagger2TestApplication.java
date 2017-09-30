@@ -23,16 +23,6 @@ public class Dagger2TestApplication extends Application {
     private Observable<SlowComponent> mSlowComponent;
     private Observable<QuickComponent> mQuickComponent;
 
-    /**
-     * Returns a {@link Dagger2TestApplication} instance from the given Context.
-     *
-     * @param context Which Context to use to fetch the application instance
-     * @return The running {@link Application} instance
-     */
-    public static Dagger2TestApplication getInstance(@NonNull final Context context) {
-        return Dagger2TestApplication.class.cast(context.getApplicationContext());
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -43,38 +33,38 @@ public class Dagger2TestApplication extends Application {
 
         // asynchronously initialize the slow component
         mSlowComponent = Observable
-                .fromCallable(() -> {
-                    Log.i(TAG, "Callable: Creating new SlowComponent instance...");
+            .fromCallable(() -> {
+                Log.i(TAG, "Callable: Creating new SlowComponent instance...");
 
-                    // prepare an artificial blocking delay
-                    final long delay = 2000L + Math.round(Math.random() * 4000d);
-                    final long start = System.currentTimeMillis();
+                // prepare an artificial blocking delay
+                final long delay = 2000L + Math.round(Math.random() * 4000d);
+                final long start = System.currentTimeMillis();
 
-                    // noinspection StatementWithEmptyBody - just actively wait here for a while
-                    do {} while (System.currentTimeMillis() - start < delay);
-                    Log.i(TAG, "Callable: Delayed SlowComponent creation by: " + ((float) (System.currentTimeMillis() - start) / 1000f) + "s");
+                // noinspection StatementWithEmptyBody - just actively wait here for a while
+                do {} while (System.currentTimeMillis() - start < delay);
+                Log.i(TAG, "Callable: Delayed SlowComponent creation by: " + ((float) (System.currentTimeMillis() - start) / 1000f) + "s");
 
-                    // create instance and notify
-                    final SlowComponent instance = buildSlowComponentGraph();
-                    Log.i(TAG, "Callable: Instance '" + instance.toString().replace(getPackageName() + ".", "") + "' created!");
-                    return instance;
-                })
-                .subscribeOn(Schedulers.io()) // slow running, run on I/O
-                .replay(1) // re-emits the last value from the stream, if any (similar to behavior subject); also becomes connectible
-                .autoConnect(0, mAtomicDisposableForSlow::set); // wait for 0 subscribers, i.e. start now; also a new disposable is produced, save it
+                // create instance and notify
+                final SlowComponent instance = buildSlowComponentGraph();
+                Log.i(TAG, "Callable: Instance '" + instance.toString().replace(getPackageName() + ".", "") + "' created!");
+                return instance;
+            })
+            .subscribeOn(Schedulers.io()) // slow running, run on I/O
+            .replay(1) // re-emits the last value from the stream, if any (similar to behavior subject); also becomes connectible
+            .autoConnect(0, mAtomicDisposableForSlow::set); // wait for 0 subscribers, i.e. start now; also a new disposable is produced, save it
 
         // asynchronously initialize the quick component
         mQuickComponent = Observable
-                .fromCallable(() -> {
-                    Log.i(TAG, "Callable: Creating new QuickComponent instance...");
-                    // quickly create and notify
-                    final QuickComponent instance = buildQuickComponentGraph();
-                    Log.i(TAG, "Callable: Instance '" + instance.toString().replace(getPackageName() + ".", "") + "' created!");
-                    return instance;
-                })
-                .subscribeOn(Schedulers.io())
-                .replay(1)
-                .autoConnect(0, mAtomicDisposableForQuick::set);
+            .fromCallable(() -> {
+                Log.i(TAG, "Callable: Creating new QuickComponent instance...");
+                // quickly create and notify
+                final QuickComponent instance = buildQuickComponentGraph();
+                Log.i(TAG, "Callable: Instance '" + instance.toString().replace(getPackageName() + ".", "") + "' created!");
+                return instance;
+            })
+            .subscribeOn(Schedulers.io())
+            .replay(1)
+            .autoConnect(0, mAtomicDisposableForQuick::set);
     }
 
     /**
@@ -101,8 +91,6 @@ public class Dagger2TestApplication extends Application {
         return DaggerSlowComponent.builder().appContextModule(new AppContextModule(this)).build();
     }
 
-    // <editor-fold desc="Getters">
-
     /**
      * Builds the dependency graph for the {@link QuickComponent}. Note that this is <b>blocking</b>.
      *
@@ -110,6 +98,17 @@ public class Dagger2TestApplication extends Application {
      */
     private QuickComponent buildQuickComponentGraph() {
         return DaggerQuickComponent.builder().appContextModule(new AppContextModule(this)).build();
+    }
+
+    // <editor-fold desc="Getters">
+    /**
+     * Returns a {@link Dagger2TestApplication} instance from the given Context.
+     *
+     * @param context Which Context to use to fetch the application instance
+     * @return The running {@link Application} instance
+     */
+    public static Dagger2TestApplication getInstance(@NonNull final Context context) {
+        return Dagger2TestApplication.class.cast(context.getApplicationContext());
     }
 
     /**
