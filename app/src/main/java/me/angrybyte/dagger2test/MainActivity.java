@@ -114,8 +114,7 @@ public class MainActivity extends ParsableActivity {
                         .subscribe(quickComponentInstance -> {
                             v.setVisibility(View.VISIBLE);
                             Utils.dispose(mQuickComponentDisposable);
-                            mInstanceDescription.setText("QuickComponent = " + Utils.toStringShort(quickComponentInstance,
-                                    this));
+                            mInstanceDescription.setText("QuickComponent = " + Utils.toStringShort(quickComponentInstance, this));
                             mInstanceDescription.setTextColor(Utils.randomColor(100));
                         });
                 mAllDisposables.add(mQuickComponentDisposable);
