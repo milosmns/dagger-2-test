@@ -108,12 +108,16 @@ public class MainActivity extends ParsableActivity {
 
                 // load the component, manage its disposable
                 Utils.dispose(mQuickComponentDisposable);
-                mQuickComponentDisposable = mQuickSingleton.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(quickComponent -> {
-                    v.setVisibility(View.VISIBLE);
-                    Utils.dispose(mQuickComponentDisposable);
-                    mInstanceDescription.setText("QuickComponent = " + Utils.toStringShort(quickComponent, this));
-                    mInstanceDescription.setTextColor(Utils.randomColor(100));
-                });
+                mQuickComponentDisposable = mQuickSingleton
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(quickComponentInstance -> {
+                            v.setVisibility(View.VISIBLE);
+                            Utils.dispose(mQuickComponentDisposable);
+                            mInstanceDescription.setText("QuickComponent = " + Utils.toStringShort(quickComponentInstance,
+                                    this));
+                            mInstanceDescription.setTextColor(Utils.randomColor(100));
+                        });
                 mAllDisposables.add(mQuickComponentDisposable);
                 break;
             }
