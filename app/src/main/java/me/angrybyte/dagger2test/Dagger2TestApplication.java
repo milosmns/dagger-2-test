@@ -33,8 +33,6 @@ public class Dagger2TestApplication extends Application {
         return Dagger2TestApplication.class.cast(context.getApplicationContext());
     }
 
-    // <editor-fold desc="Dependency graph management">
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -102,7 +100,6 @@ public class Dagger2TestApplication extends Application {
     private SlowComponent buildSlowComponentGraph() {
         return DaggerSlowComponent.builder().appContextModule(new AppContextModule(this)).build();
     }
-    // </editor-fold>
 
     // <editor-fold desc="Getters">
 
