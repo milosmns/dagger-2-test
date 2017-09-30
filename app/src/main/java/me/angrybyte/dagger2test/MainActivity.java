@@ -23,8 +23,6 @@ import me.angrybyte.sillyandroid.parsable.Annotations.FindView;
 import me.angrybyte.sillyandroid.parsable.Annotations.Layout;
 import me.angrybyte.sillyandroid.parsable.components.ParsableActivity;
 
-import static me.angrybyte.dagger2test.Utils.randomColor;
-
 @Layout(R.layout.activity_main)
 public class MainActivity extends ParsableActivity {
 
@@ -99,7 +97,7 @@ public class MainActivity extends ParsableActivity {
                             v.setEnabled(true);
                             Utils.dispose(mSlowComponentDisposable);
                             mInstanceDescription.setText("SlowComponent = " + Utils.toStringShort(slowComponentInstance, this));
-                            mInstanceDescription.setTextColor(randomColor(140));
+                            mInstanceDescription.setTextColor(Utils.randomColor(140));
                         });
                 mAllDisposables.add(mSlowComponentDisposable);
                 break;
@@ -114,7 +112,7 @@ public class MainActivity extends ParsableActivity {
                     v.setVisibility(View.VISIBLE);
                     Utils.dispose(mQuickComponentDisposable);
                     mInstanceDescription.setText("QuickComponent = " + Utils.toStringShort(quickComponent, this));
-                    mInstanceDescription.setTextColor(randomColor(100));
+                    mInstanceDescription.setTextColor(Utils.randomColor(100));
                 });
                 mAllDisposables.add(mQuickComponentDisposable);
                 break;
