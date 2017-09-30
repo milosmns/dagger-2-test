@@ -16,11 +16,15 @@ public class WebClientModule {
 
     @Provides
     @Debug
-    public WebClient getDebugWebClient(File cacheFile) { return new WebClientDebug(cacheFile); }
+    public WebClient getDebugWebClient(File cacheFile) {
+        return new WebClientDebug(cacheFile);
+    }
 
     @Provides
     @ApplicationScope
     @Production
-    public WebClient getProductionWebClient(File cacheFile) { return new WebClientProduction(cacheFile); }
+    public WebClient getProductionWebClient(File cacheFile) {
+        return new WebClientProduction(cacheFile);
+    }
 
 }
