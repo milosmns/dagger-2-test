@@ -17,9 +17,9 @@ public class CacheModule {
     public File provideCacheFile(Context context) {
         String fileCode = Integer.toHexString(Math.abs(new Random().nextInt()));
 
-        // this makes no sense, I know
+        // this is just for demo purposes
         if (context.getCacheDir() != null) {
-            return new File("temp/my_data_" + fileCode + ".txt");
+            return new File(context.getCacheDir() + "/temp/my_data_" + fileCode + ".txt");
         } else {
             return new File(context.getExternalCacheDir(), "EXT_" + fileCode + ".txt");
         }
