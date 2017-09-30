@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    tools:context="me.angrybyte.dagger2test.MainActivity"
+    tools:appContext="me.angrybyte.dagger2test.MainActivity"
     tools:ignore="HardcodedText">
 
     <TextView
@@ -37,6 +36,7 @@
         android:id="@+id/button_slow_instance"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:enabled="false"
         android:padding="@dimen/spacing_huge"
         android:text="Print slow instance"
         android:textSize="@dimen/text_size_huge"
@@ -59,6 +59,7 @@
         android:padding="@dimen/spacing_huge"
         android:text="Print quick instance"
         android:textSize="@dimen/text_size_huge"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -67,24 +68,7 @@
         tools:layout_constraintBottom_creator="1"
         tools:layout_constraintLeft_creator="1"
         tools:layout_constraintRight_creator="1"
-        tools:layout_constraintTop_creator="1" />
-
-    <Button
-        android:id="@+id/button_generate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:padding="@dimen/spacing_huge"
-        android:text="Generate new graph"
-        android:textSize="@dimen/text_size_huge"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_quick_instance"
-        app:layout_constraintVertical_bias="0.2"
-        tools:layout_constraintBottom_creator="1"
-        tools:layout_constraintLeft_creator="1"
-        tools:layout_constraintRight_creator="1"
-        tools:layout_constraintTop_creator="1" />
+        tools:layout_constraintTop_creator="1"
+        tools:visibility="visible" />
 
 </android.support.constraint.ConstraintLayout>

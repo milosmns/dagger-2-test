@@ -9,8 +9,7 @@ import dagger.Module;
 import dagger.Provides;
 import me.angrybyte.dagger2test.scopes.ApplicationScope;
 
-@SuppressWarnings("WeakerAccess")
-@Module(includes = ContextModule.class)
+@Module(includes = AppContextModule.class)
 public class CacheModule {
 
     @Provides

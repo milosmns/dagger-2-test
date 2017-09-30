@@ -11,15 +11,16 @@ import me.angrybyte.dagger2test.qualifiers.Debug;
 import me.angrybyte.dagger2test.qualifiers.Production;
 import me.angrybyte.dagger2test.scopes.ApplicationScope;
 
-@SuppressWarnings("WeakerAccess")
 @Module(includes = CacheModule.class)
 public class WebClientModule {
 
     @Provides
-    @Debug public WebClient getDebugWebClient(File cacheFile) { return new WebClientDebug(cacheFile); }
+    @Debug
+    public WebClient getDebugWebClient(File cacheFile) { return new WebClientDebug(cacheFile); }
 
     @Provides
     @ApplicationScope
-    @Production public WebClient getProductionWebClient(File cacheFile) { return new WebClientProduction(cacheFile); }
+    @Production
+    public WebClient getProductionWebClient(File cacheFile) { return new WebClientProduction(cacheFile); }
 
 }
